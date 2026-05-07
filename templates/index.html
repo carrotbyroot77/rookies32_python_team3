@@ -1,193 +1,350 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
     <meta charset="UTF-8">
-    <title>기름값 정보 조회</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>기름값 프로젝트</title>
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
-            background-color: #f4f6f9;
-            font-family: Arial, sans-serif;
+            font-family: "Pretendard", "Noto Sans KR", Arial, sans-serif;
+            background-color: #eef2f6;
+            color: #222;
         }
 
         .container {
-            width: 1000px;
-            margin: 40px auto;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 28px 20px;
         }
 
-        h1 {
-            text-align: center;
-            color: #1e3a8a;
-            margin-bottom: 10px;
+        .header {
+            margin-bottom: 22px;
         }
 
-        .update-time {
-            text-align: center;
-            color: gray;
-            margin-bottom: 30px;
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            color: #1f2937;
+        }
+
+        .header p {
+            margin: 8px 0 0;
+            color: #6b7280;
             font-size: 14px;
         }
 
-        .card {
-            background-color: white;
-            padding: 25px;
-            margin-bottom: 30px;
+        .filter-card {
+            background-color: #ffffff;
+            padding: 16px;
             border-radius: 16px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+            margin-bottom: 18px;
         }
 
-        h2 {
-            color: #111827;
-            margin-bottom: 20px;
-            border-left: 6px solid #2563eb;
-            padding-left: 10px;
-        }
-
-        .search-box {
+        form {
             display: flex;
             gap: 10px;
-            justify-content: center;
-            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
         }
 
-        select, button {
-            padding: 10px;
-            font-size: 15px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
+        select,
+        button {
+            height: 40px;
+            padding: 0 14px;
+            border-radius: 10px;
+            border: 1px solid #d1d5db;
+            background-color: white;
+            font-size: 14px;
         }
 
         button {
             background-color: #2563eb;
             color: white;
-            cursor: pointer;
             border: none;
+            font-weight: 600;
+            cursor: pointer;
         }
 
         button:hover {
             background-color: #1d4ed8;
         }
 
+        .update-time {
+            font-size: 13px;
+            color: #6b7280;
+            margin: 10px 0 18px;
+        }
+
+        .error-msg {
+            background-color: #fee2e2;
+            color: #b91c1c;
+            padding: 12px 14px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .summary-box {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .summary-card {
+            background-color: white;
+            padding: 16px;
+            border-radius: 16px;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.07);
+        }
+
+        .summary-card strong {
+            display: block;
+            color: #6b7280;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .summary-card p {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 800;
+            color: #ef4444;
+        }
+
+        .section-title {
+            margin: 28px 0 12px;
+            font-size: 20px;
+            color: #111827;
+        }
+
+        .table-card {
+            background-color: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.07);
+            margin-bottom: 24px;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
+            font-size: 14px;
         }
 
         th {
-            background-color: #2563eb;
-            color: white;
-            padding: 13px;
+            background-color: #f9fafb;
+            color: #374151;
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #e5e7eb;
         }
 
         td {
-            padding: 11px;
+            padding: 12px;
             text-align: center;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
         }
 
         tr:hover {
-            background-color: #f1f5f9;
+            background-color: #f8fafc;
         }
 
         .price {
+            color: #ef4444;
+            font-weight: 800;
+        }
+
+        .up {
             color: #dc2626;
-            font-weight: bold;
+            font-weight: 700;
+        }
+
+        .down {
+            color: #2563eb;
+            font-weight: 700;
+        }
+
+        .same {
+            color: #6b7280;
+            font-weight: 700;
         }
 
         .address {
             text-align: left;
+            color: #4b5563;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 12px;
+            }
+
+            .summary-box {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            select,
+            button {
+                width: 100%;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th,
+            td {
+                padding: 9px 6px;
+            }
+
+            .address {
+                max-width: 180px;
+            }
         }
     </style>
 </head>
 
 <body>
+    <div class="container">
 
-<div class="container">
+        <div class="header">
+            <h1>⛽ 기름값 프로젝트</h1>
+            <p>지역별 최저가 주유소와 시도별 평균 유가를 한눈에 확인합니다.</p>
+        </div>
 
-    <h1>⛽ 기름값 정보 조회 서비스</h1>
+        <div class="filter-card">
+            <form method="get">
+                <select name="area">
+                    {% for code, name in area_codes.items() %}
+                    <option value="{{ code }}" {% if selected_area == code %}selected{% endif %}>
+                        {{ name }}
+                    </option>
+                    {% endfor %}
+                </select>
 
-    <p class="update-time">
-        마지막 갱신 시간 : {{ update_time }}
-    </p>
+                <select name="prodcd">
+                    {% for code, name in product_codes.items() %}
+                    <option value="{{ code }}" {% if selected_prodcd == code %}selected{% endif %}>
+                        {{ name }}
+                    </option>
+                    {% endfor %}
+                </select>
 
-    <div class="card">
-        <h2>전국 평균 기름값</h2>
+                <select name="count">
+                    <option value="10" {% if selected_count == "10" %}selected{% endif %}>TOP10</option>
+                    <option value="20" {% if selected_count == "20" %}selected{% endif %}>TOP20</option>
+                </select>
 
-        <table>
-            <tr>
-                <th>번호</th>
-                <th>유종</th>
-                <th>평균 가격</th>
-                <th>전일 대비</th>
-                <th>기준일</th>
-            </tr>
+                <button type="submit">조회하기</button>
+            </form>
+        </div>
 
-            {% for oil in avg_list %}
-            <tr>
-                <td>{{ loop.index }}</td>
-                <td>{{ oil.PRODNM }}</td>
-                <td class="price">{{ oil.PRICE }}원</td>
-                <td>{{ oil.DIFF }}</td>
-                <td>{{ oil.TRADE_DT }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-    </div>
+        {% if updated_at %}
+        <div class="update-time">
+            📅 조회 기준 시간 : {{ updated_at }}
+        </div>
+        {% endif %}
 
-    <div class="card">
-        <h2>전국/지역별 최저가 주유소 TOP20</h2>
+        {% if error_msg %}
+        <div class="error-msg">
+            {{ error_msg }}
+        </div>
+        {% endif %}
 
-        <form method="GET" action="/" class="search-box">
+        {% if summary %}
+        <div class="summary-box">
+            <div class="summary-card">
+                <strong>선택 지역 조회 수</strong>
+                <p>{{ summary.count }}개</p>
+            </div>
 
-            <select name="prodcd">
-                {% for code, name in prod_list %}
-                <option value="{{ code }}" {% if selected_prodcd == code %}selected{% endif %}>
-                    {{ name }}
-                </option>
+            <div class="summary-card">
+                <strong>선택 지역 평균</strong>
+                <p>{{ summary.avg_price }}</p>
+            </div>
+
+            <div class="summary-card">
+                <strong>선택 지역 최저가</strong>
+                <p>{{ summary.min_price }}</p>
+            </div>
+
+            <div class="summary-card">
+                <strong>선택 지역 최고가</strong>
+                <p>{{ summary.max_price }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <h2 class="section-title">📊 시도별 현재 평균 유가</h2>
+
+        <div class="table-card">
+            <table>
+                <tr>
+                    <th>지역</th>
+                    <th>평균 가격</th>
+                    <th>전일 대비</th>
+                </tr>
+
+                {% for item in sido_avg_prices %}
+                <tr>
+                    <td>{{ item.sido }}</td>
+                    <td class="price">{{ item.price_text }}</td>
+                    <td>
+                        {% if item.diff > 0 %}
+                            <span class="up">▲ {{ item.diff_text }}</span>
+                        {% elif item.diff < 0 %}
+                            <span class="down">▼ {{ item.diff_text }}</span>
+                        {% else %}
+                            <span class="same">{{ item.diff_text }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
                 {% endfor %}
-            </select>
+            </table>
+        </div>
 
-            <select name="area">
-                {% for code, name in areas %}
-                <option value="{{ code }}" {% if selected_area == code %}selected{% endif %}>
-                    {{ name }}
-                </option>
+        <h2 class="section-title">🏆 선택 지역 최저가 주유소</h2>
+
+        <div class="table-card">
+            <table>
+                <tr>
+                    <th>순위</th>
+                    <th>주유소명</th>
+                    <th>브랜드</th>
+                    <th>가격</th>
+                    <th>주소</th>
+                </tr>
+
+                {% for station in stations %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ station.name }}</td>
+                    <td>{{ station.brand }}</td>
+                    <td class="price">{{ station.price_text }}</td>
+                    <td class="address">{{ station.address }}</td>
+                </tr>
                 {% endfor %}
-            </select>
+            </table>
+        </div>
 
-            <button type="submit">조회하기</button>
-        </form>
-
-        <table>
-            <tr>
-                <th>순위</th>
-                <th>주유소명</th>
-                <th>가격</th>
-                <th>상표</th>
-                <th>주소</th>
-            </tr>
-
-            {% for oil in low_top20_list %}
-            <tr>
-                <td>{{ loop.index }}</td>
-                <td>{{ oil.OS_NM }}</td>
-                <td class="price">{{ oil.PRICE }}원</td>
-                <td>{{ oil.POLL_DIV_CD }}</td>
-                <td class="address">
-                    {% if oil.NEW_ADR %}
-                        {{ oil.NEW_ADR }}
-                    {% else %}
-                        {{ oil.VAN_ADR }}
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
     </div>
-
-</div>
-
 </body>
 </html>
