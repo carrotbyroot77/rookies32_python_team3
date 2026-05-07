@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>기름값 정보 조회</title>
+    <style>
+        body { margin: 0; background-color: #f4f6f9; font-family: Arial, sans-serif; }
+        .container { width: 1000px; margin: 40px auto; }
+        h1 { text-align: center; color: #1e3a8a; margin-bottom: 10px; }
+        .update-time { text-align: center; color: gray; margin-bottom: 30px; font-size: 14px; }
+        .card { background-color: white; padding: 25px; margin-bottom: 30px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        h2 { color: #111827; margin-bottom: 20px; border-left: 6px solid #2563eb; padding-left: 10px; }
+        .search-box { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
+        select, button { padding: 10px; font-size: 15px; border-radius: 8px; border: 1px solid #ccc; }
+        button { background-color: #2563eb; color: white; cursor: pointer; border: none; }
+        button:hover { background-color: #1d4ed8; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background-color: #2563eb; color: white; padding: 13px; }
+        td { padding: 11px; text-align: center; border-bottom: 1px solid #ddd; }
+        tr:hover { background-color: #f1f5f9; }
+        .price { color: #dc2626; font-weight: bold; }
+        .price-drop { color: #16a34a; font-weight: bold; }
+        .address { text-align: left; }
+        .news-item { padding: 14px 0; border-bottom: 1px solid #eee; }
+        .news-item:last-child { border-bottom: none; }
+        .news-title { font-weight: bold; color: #1e3a8a; text-decoration: none; font-size: 15px; }
+        .news-title:hover { text-decoration: underline; }
+        .news-summary { font-size: 13px; color: #666; margin-top: 5px; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <h1>⛽ 기름값 정보 조회 서비스</h1>
+    <p class="update-time">마지막 갱신 시각 : {{ update_time }}</p>
+
+    <div style="text-align:right; margin-bottom: 20px; font-size: 14px;">
+        <span style="color:#555;">접속 계정: <strong>{{ user_email }}</strong></span>
+        <a href="/logout" style="color:#dc2626; text-decoration:none; margin-left:10px;">[로그아웃 / 다른 계정 접속]</a>
+    </div>
+
+    <div class="card" style="border: 2px solid {{ transit_info.color }};">
+        <h2 style="border-left-color: {{ transit_info.color }}; color: {{ transit_info.color }};">
+            🚦 오늘의 AI 교통수단 추천
+        </h2>
+        <div style="text-align: center; padding: 10px;">
+            <p style="font-size: 18px; margin-bottom: 5px;">
+                현재 보통휘발유 가격: <strong>{{ transit_info.price }}원</strong> 
+                <span style="color: gray; font-size: 14px;">(기름값 지수: {{ transit_info.index }})</span>
+            </p>
+            <div style="display: inline-block; padding: 10px 20px; background-color: {{ transit_info.color }}20; border-radius: 8px; margin-top: 10px;">
+                <strong style="color: {{ transit_info.color }}; font-size: 20px;">[{{ transit_info.level }}]</strong>
+                <span style="font-size: 18px; margin-left: 10px;">{{ transit_info.msg }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>📧 내 이메일로 유가 요약 리포트 받기</h2>
+        <p style="color:#555; font-size:14px; margin-bottom:15px;">
+            버튼을 누르시면 현재 로그인된 계정({{ user_email }})으로 리포트를 보내드립니다.
+        </p>
+        <div class="email-box">
+            <button onclick="sendEmail()" style="width: 100%; font-size: 16px; padding: 15px;">리포트 즉시 발송</button>
+        </div>
+        <div id="email-result" style="text-align:center; margin-top:15px;"></div>
+    </div>
+
+    <div class="card">
+        <h2>📊 전국 평균 유가</h2>
+        <table>
+            <tr><th>번호</th><th>유종</th><th>평균 가격</th><th>전일 대비</th><th>기준일</th></tr>
+            {% for oil in avg_list %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ oil.PRODNM }}</td>
+                <td class="price">{{ oil.PRICE }}원</td>
+                <td>{{ oil.DIFF }}</td>
+                <td>{{ oil.TRADE_DT }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    {% if drop_list %}
+    <div class="card">
+        <h2>📉 전일 대비 가격 하락 유종</h2>
+        <table>
+            <tr><th>유종</th><th>현재 가격</th><th>전일 대비</th></tr>
+            {% for oil in drop_list %}
+            <tr>
+                <td>{{ oil.PRODNM }}</td>
+                <td class="price">{{ oil.PRICE }}원</td>
+                <td class="price-drop">▼ {{ oil.DIFF }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <h2>🏆 전국/지역별 최저가 주유소 TOP20</h2>
+        <form method="GET" action="/" class="search-box">
+            <select name="prodcd">
+                {% for code, name in prod_list %}
+                <option value="{{ code }}" {% if selected_prodcd == code %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+            <select name="area">
+                {% for code, name in areas %}
+                <option value="{{ code }}" {% if selected_area == code %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">조회하기</button>
+        </form>
+        <table>
+            <tr><th>순위</th><th>주유소명</th><th>가격</th><th>상표</th><th>주소</th></tr>
+            {% for oil in low_top20_list %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ oil.OS_NM }}</td>
+                <td class="price">{{ oil.PRICE }}원</td>
+                <td>{{ oil.POLL_DIV_CD }}</td>
+                <td class="address">
+                    {% if oil.NEW_ADR %}{{ oil.NEW_ADR }}
+                    {% else %}{{ oil.VAN_ADR }}{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    {% if news_list %}
+    <div class="card">
+        <h2>📰 최신 경제 뉴스</h2>
+        {% for news in news_list %}
+        <div class="news-item">
+            <a class="news-title" href="{{ news.link }}" target="_blank">{{ news.title }}</a>
+            <p class="news-summary">{{ news.summary[:100] }}...</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+    function sendEmail() {
+        const resultDiv = document.getElementById("email-result");
+        resultDiv.style.color = "#2563eb";
+        resultDiv.innerText = "발송 중...";
+
+        fetch("/send-email", { method: "POST" })
+        .then(res => res.json())
+        .then(data => {
+            resultDiv.style.color = data.success ? "#16a34a" : "#dc2626";
+            resultDiv.innerText = data.message;
+        })
+        .catch(() => {
+            resultDiv.style.color = "#dc2626";
+            resultDiv.innerText = "발송 중 오류가 발생했습니다.";
+        });
+    }
+</script>
+</body>
+</html>
