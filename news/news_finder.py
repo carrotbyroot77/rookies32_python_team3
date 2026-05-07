@@ -10,7 +10,7 @@ url2 = 'https://www.yonhapnewstv.co.kr/category/news/economy/feed/'
 # 'title' 'link' 'published_parsed' 'author' 'summary' 'tags'[n]['term'] 'credit'
 def get_oil_news_sbs(url):
     feed = feedparser.parse(url)
-    news_list = feed.entries[:30]
+    news_list = feed.entries[:500]
 
     result_url = []
 
@@ -22,6 +22,7 @@ def get_oil_news_sbs(url):
         published_parsed = news.published_parsed
         tags = news.tags
         credit = news.credit
+        news_id = news.id[-11:]
         news_dict = { "title": title, "link": link, "summary": summary, "author": author, "published_parsed": time.strftime('%Y-%m-%d %H:%M:%S',published_parsed) ,"tags" : list(set(tag['term'] for tag in tags)), 'credit' : credit}
 
         if '석유' in news_dict["title"] or '석유' in news_dict['tags']:
@@ -32,7 +33,7 @@ def get_oil_news_sbs(url):
 # 'title' 'link' 'published_parsed' 'author' 'tags' 'summary'
 def get_oil_news_yonhap(url):
     feed = feedparser.parse(url)
-    news_list = feed.entries[:20]
+    news_list = feed.entries[:500]
 
     result_url = []
 
@@ -44,6 +45,7 @@ def get_oil_news_yonhap(url):
         published_parsed = news.published_parsed
         tags = news.tags
         credit = '연합뉴스TV'
+        news_id = news.id
         news_dict = { "title": title, "link": link, "summary": summary, "author": author, "published_parsed": time.strftime('%Y-%m-%d %H:%M:%S',published_parsed) ,"tags" : list(set(tag['term'] for tag in tags)), 'credit' : credit}
 
         if '석유' in news_dict['title'] : 
