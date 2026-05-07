@@ -187,6 +187,86 @@
             color: #4b5563;
         }
 
+        /* ── 뉴스 카드 ── */
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .news-card {
+            background-color: white;
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.07);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            text-decoration: none;
+            color: inherit;
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+
+        .news-card:hover {
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.13);
+            transform: translateY(-2px);
+        }
+
+        .news-card-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .news-badge {
+            background-color: #eff6ff;
+            color: #2563eb;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+        }
+
+        .news-card-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #111827;
+            line-height: 1.5;
+        }
+
+        .news-card-summary {
+            font-size: 13px;
+            color: #6b7280;
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .news-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .news-tag {
+            background-color: #f3f4f6;
+            color: #374151;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        .no-news {
+            color: #9ca3af;
+            font-size: 14px;
+            padding: 20px 0;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 20px 12px;
@@ -217,6 +297,10 @@
 
             .address {
                 max-width: 180px;
+            }
+
+            .news-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -249,8 +333,8 @@
                 </select>
 
                 <select name="count">
-                    <option value="10" {% if selected_count == "10" %}selected{% endif %}>TOP10</option>
-                    <option value="20" {% if selected_count == "20" %}selected{% endif %}>TOP20</option>
+                    <option value="10" {% if selected_count == "10" %}selected{% endif %}>TOP 10</option>
+                    <option value="20" {% if selected_count == "20" %}selected{% endif %}>TOP 20</option>
                 </select>
 
                 <button type="submit">조회하기</button>
@@ -275,17 +359,14 @@
                 <strong>선택 지역 조회 수</strong>
                 <p>{{ summary.count }}개</p>
             </div>
-
             <div class="summary-card">
                 <strong>선택 지역 평균</strong>
                 <p>{{ summary.avg_price }}</p>
             </div>
-
             <div class="summary-card">
                 <strong>선택 지역 최저가</strong>
                 <p>{{ summary.min_price }}</p>
             </div>
-
             <div class="summary-card">
                 <strong>선택 지역 최고가</strong>
                 <p>{{ summary.max_price }}</p>
@@ -302,7 +383,6 @@
                     <th>평균 가격</th>
                     <th>전일 대비</th>
                 </tr>
-
                 {% for item in sido_avg_prices %}
                 <tr>
                     <td>{{ item.sido }}</td>
@@ -321,6 +401,33 @@
             </table>
         </div>
 
+        <!-- 뉴스 섹션 (주유소 테이블 위) -->
+        <h2 class="section-title">📰 유가 관련 최신 뉴스</h2>
+
+        {% if oil_news %}
+        <div class="news-grid">
+            {% for news in oil_news %}
+            <a class="news-card" href="{{ news.link }}" target="_blank" rel="noopener noreferrer">
+                <div class="news-card-meta">
+                    <span class="news-badge">{{ news.credit }}</span>
+                    <span>{{ news.published }}</span>
+                </div>
+                <div class="news-card-title">{{ news.title }}</div>
+                <div class="news-card-summary">{{ news.summary }}</div>
+                {% if news.tags %}
+                <div class="news-tags">
+                    {% for tag in news.tags[:4] %}
+                    <span class="news-tag">#{{ tag }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="no-news">현재 관련 뉴스가 없습니다.</p>
+        {% endif %}
+
         <h2 class="section-title">🏆 선택 지역 최저가 주유소</h2>
 
         <div class="table-card">
@@ -332,7 +439,6 @@
                     <th>가격</th>
                     <th>주소</th>
                 </tr>
-
                 {% for station in stations %}
                 <tr>
                     <td>{{ loop.index }}</td>

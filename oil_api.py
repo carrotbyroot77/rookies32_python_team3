@@ -28,7 +28,7 @@ def get_brand_name(code):
     return BRAND_MAP.get(code, code)
 
 
-def get_low_price_stations(area="05", prodcd="B027", cnt="10"):
+def get_low_price_stations(area="01", prodcd="B027", cnt="10"):
     if not OPINET_KEY:
         raise ValueError(".env 파일에 OPINET_KEY가 없습니다.")
 
@@ -46,33 +46,30 @@ def get_low_price_stations(area="05", prodcd="B027", cnt="10"):
     response.raise_for_status()
 
     data = response.json()
-
     oil_list = data.get("RESULT", {}).get("OIL", [])
 
     result = []
 
     for oil in oil_list:
-        price = oil.get("PRICE", 0)
+        price = int(oil.get("PRICE", 0))
 
         result.append({
             "name": oil.get("OS_NM", "이름 없음"),
             "brand": get_brand_name(oil.get("POLL_DIV_CD", "")),
-            "price": int(price),
-            "price_text": f"{int(price):,}원",
+            "price": price,
+            "price_text": f"{price:,}원",
             "address": oil.get("NEW_ADR", "주소 없음"),
             "uni_id": oil.get("UNI_ID", "")
         })
 
-    prices = [station["price"] for station in result]
+    prices = [s["price"] for s in result]
 
     if prices:
         avg_price = sum(prices) / len(prices)
         min_price = min(prices)
         max_price = max(prices)
     else:
-        avg_price = 0
-        min_price = 0
-        max_price = 0
+        avg_price = min_price = max_price = 0
 
     return {
         "updated_at": datetime.now().strftime("%Y년 %m월 %d일 %H:%M:%S"),
@@ -101,7 +98,6 @@ def get_sido_avg_prices(prodcd="B027"):
     response.raise_for_status()
 
     data = response.json()
-
     oil_list = data.get("RESULT", {}).get("OIL", [])
 
     result = []
