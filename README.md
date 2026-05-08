@@ -1,7 +1,5 @@
-<<<<<<< Updated upstream
 ﻿rookies32_python_team3
 ========================
-
 
 #### .env 세팅
 
@@ -24,6 +22,3 @@ SMTP_PORT=587
 ##### 패키지 설치(requirements.txt)
 
 pip install -r requirements.txt
-=======
-﻿# rookies32_python_team3
->>>>>>> Stashed changes

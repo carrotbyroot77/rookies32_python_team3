@@ -317,6 +317,23 @@
         for (var i = 0; i < markers.length; i++) { markers[i].setMap(null); }
         markers = [];
     }
+
+    function sendEmail() {
+        const resultDiv = document.getElementById("email-result");
+        resultDiv.style.color = "#2563eb";
+        resultDiv.innerText = "발송 중...";
+
+        fetch("/send-email", { method: "POST" })
+        .then(res => res.json())
+        .then(data => {
+            resultDiv.style.color = data.success ? "#16a34a" : "#dc2626";
+            resultDiv.innerText = data.message;
+        })
+        .catch(() => {
+            resultDiv.style.color = "#dc2626";
+            resultDiv.innerText = "발송 중 오류가 발생했습니다.";
+        });
+    }
 </script>
 </body>
 </html>
