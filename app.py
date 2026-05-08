@@ -122,6 +122,14 @@ def index():
 
         avg_list       = get_avg_oil_price()
         low_top20_list = get_low_top20(prodcd=prodcd, area=area)
+        
+        # 처음부터 콤마 붙이기
+        for oil in low_top20_list:
+            try:
+                price = int(str(oil.get("PRICE", "0")).replace(",", ""))
+                oil["PRICE"] = f"{price:,}"
+            except:
+                pass
 
         avg_list       = apply_fake_inflation(avg_list, visit_count)
         low_top20_list = apply_fake_inflation(low_top20_list, visit_count)
