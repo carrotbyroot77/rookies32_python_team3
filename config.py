@@ -26,6 +26,5 @@ PRODUCTS = [
     ("C004", "실내등유"),
 ]
 
-# dict 형태 (템플릿용)
 AREA_CODES    = {code: name for code, name in AREAS if code}
 PRODUCT_CODES = {code: name for code, name in PRODUCTS}

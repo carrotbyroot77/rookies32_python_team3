@@ -8,11 +8,12 @@ from datetime import datetime
 import os
 
 from oil_api import (
-    get_low_price_stations,
-    get_sido_avg_prices,
     get_avg_oil_price,
     get_low_top20,
-    get_price_drop_list
+    get_price_drop_list,
+    get_nearby_list,
+    get_sido_avg_prices,
+    get_low_price_stations
 )
 from news_finder import get_all_oil_news
 from email_service import send_oil_summary, send_scheduled_report
@@ -25,15 +26,12 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "oil_project_secret")
 
-# 이메일 자동 발송 시간
-SEND_TIME = "10:27"
+SEND_TIME = "12:03"
 
-# 😈 다크패턴: 방문 횟수 추적
 visit_tracker = {}
 
 
 def apply_fake_inflation(oil_list, visit_count):
-    """방문 횟수에 따라 기름값을 몰래 인상하는 함수"""
     if visit_count <= 1:
         return oil_list
 
@@ -54,7 +52,6 @@ def apply_fake_inflation(oil_list, visit_count):
 
 # ── 스케줄러 ──
 def send_daily_report():
-    """매일 10시 자동발송 - dd.py 스타일 텍스트 메일"""
     print("📧 유가 리포트 자동 발송 시작...")
     try:
         send_scheduled_report()
@@ -82,7 +79,6 @@ def login():
         if email:
             session["user_email"] = email
             return redirect(url_for("index"))
-
     session.clear()
     return render_template("login.html")
 
@@ -167,7 +163,6 @@ def index():
 
 @app.route("/send-email", methods=["POST"])
 def send_email():
-    """즉시발송 버튼 - HTML 이메일"""
     user_email = session.get("user_email")
     if not user_email:
         return jsonify({"success": False, "message": "로그인이 필요합니다."})
@@ -184,9 +179,19 @@ def send_email():
         return jsonify({"success": False, "message": f"발송 실패: {e}"})
 
 
+@app.route("/nearby", methods=["POST"])
+def nearby():
+    body   = request.json
+    lat    = body.get('lat')
+    lon    = body.get('lon')
+    radius = body.get('radius', 2000)
+    prodcd = body.get('prodcd', 'B027')
+    sort   = body.get('sort', 1)
+    return jsonify(get_nearby_list(lat, lon, radius, prodcd, sort))
+
+
 @app.route("/send-report")
 def manual_send():
-    """자동발송 테스트용"""
     send_daily_report()
     return "✅ 자동발송 테스트 완료!", 200
 
