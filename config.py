@@ -1,4 +1,5 @@
 AREAS = [
+    ("",   "전국"),
     ("01", "서울"),
     ("02", "경기"),
     ("03", "강원"),
@@ -19,12 +20,12 @@ AREAS = [
 ]
 
 PRODUCTS = [
-    ("B027", "휘발유"),
-    ("D047", "경유"),
+    ("B027", "보통휘발유"),
+    ("D047", "자동차경유"),
     ("B034", "고급휘발유"),
-    ("K015", "LPG"),
+    ("C004", "실내등유"),
 ]
 
-# dict 형태도 제공 (app.py 템플릿용)
-AREA_CODES = {code: name for code, name in AREAS}
+# dict 형태 (템플릿용)
+AREA_CODES    = {code: name for code, name in AREAS if code}
 PRODUCT_CODES = {code: name for code, name in PRODUCTS}
