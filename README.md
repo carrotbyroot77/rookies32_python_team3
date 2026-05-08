@@ -13,6 +13,9 @@
 | [schedule](https://schedule.readthedocs.io/) | 1.2.2 | 매일 정해진 시각에 유가 리포트 자동 발송 |
 | [pyproj](https://pyproj4.github.io/pyproj/) | 3.7.2 | WGS84 ↔ KATEC 좌표계 변환 (지도 ↔ Opinet) |
 
+<br>
+<br>
+
 ### Python 내장 모듈
 
 | 도구 | 기능 |
@@ -22,6 +25,9 @@
 | `datetime` | 갱신 시각·메일 제목 타임스탬프 표시 |
 | `threading` | 스케줄러를 백그라운드 스레드로 실행 |
 | `copy` | 다크 패턴 가격 인상 시 원본 보호용 deepcopy |
+
+<br>
+<br>
 
 ### 외부 API / 서비스
 
