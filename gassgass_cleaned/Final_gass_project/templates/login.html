@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>기름값 정보 서비스 - 입장</title>
+    <style>
+        body { margin: 0; background-color: #f4f6f9; font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .login-card { background-color: white; padding: 40px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align: center; width: 400px; }
+        h1 { color: #1e3a8a; margin-bottom: 10px; }
+        p  { color: #666; font-size: 14px; margin-bottom: 30px; line-height: 1.5; }
+        input[type="email"] { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 15px; }
+        button { width: 100%; background-color: #2563eb; color: white; padding: 12px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #1d4ed8; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h1>⛽ 유가 조회 서비스</h1>
+        <p>환영합니다!<br>개인 맞춤형 유가 분석 리포트 제공을 위해<br>이메일 주소를 입력해 주세요.</p>
+        <form method="POST" action="/login">
+            <input type="email" name="email" placeholder="example@email.com" required>
+            <button type="submit">서비스 입장하기</button>
+        </form>
+    </div>
+</body>
+</html>

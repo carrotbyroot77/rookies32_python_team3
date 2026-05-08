@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>기름값 정보 조회</title>
+    <style>
+        body { margin: 0; background-color: #f4f6f9; font-family: Arial, sans-serif; }
+        .container { width: 1000px; margin: 40px auto; }
+        h1 { text-align: center; color: #1e3a8a; margin-bottom: 10px; }
+        .update-time { text-align: center; color: gray; margin-bottom: 30px; font-size: 14px; }
+        .card { background-color: white; padding: 25px; margin-bottom: 30px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        h2 { color: #111827; margin-bottom: 20px; border-left: 6px solid #2563eb; padding-left: 10px; }
+        .search-box { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
+        select, button { padding: 10px; font-size: 15px; border-radius: 8px; border: 1px solid #ccc; }
+        button { background-color: #2563eb; color: white; cursor: pointer; border: none; }
+        button:hover { background-color: #1d4ed8; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background-color: #2563eb; color: white; padding: 13px; }
+        td { padding: 11px; text-align: center; border-bottom: 1px solid #ddd; }
+        tr:hover { background-color: #f1f5f9; }
+        .price { color: #dc2626; font-weight: bold; }
+        .price-drop { color: #16a34a; font-weight: bold; }
+        .address { text-align: left; }
+        .news-item { padding: 14px 0; border-bottom: 1px solid #eee; }
+        .news-item:last-child { border-bottom: none; }
+        .news-title { font-weight: bold; color: #1e3a8a; text-decoration: none; font-size: 15px; }
+        .news-title:hover { text-decoration: underline; }
+        .news-summary { font-size: 13px; color: #666; margin-top: 5px; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <h1>⛽ 기름값 정보 조회 서비스</h1>
+    <p class="update-time">마지막 갱신 시각 : {{ update_time }}</p>
+
+    <div style="text-align:right; margin-bottom: 20px; font-size: 14px;">
+        <span style="color:#555;">접속 계정: <strong>{{ user_email }}</strong></span>
+        <a href="/logout" style="color:#dc2626; text-decoration:none; margin-left:10px;">[로그아웃 / 다른 계정 접속]</a>
+    </div>
+
+    <div class="card" style="border: 2px solid {{ transit_info.color }};">
+        <h2 style="border-left-color: {{ transit_info.color }}; color: {{ transit_info.color }};">
+            🚦 오늘의 AI 교통수단 추천
+        </h2>
+        <div style="text-align: center; padding: 10px;">
+            <p style="font-size: 18px; margin-bottom: 5px;">
+                현재 보통휘발유 가격: <strong>{{ transit_info.price }}원</strong> 
+                <span style="color: gray; font-size: 14px;">(기름값 지수: {{ transit_info.index }})</span>
+            </p>
+            <div style="display: inline-block; padding: 10px 20px; background-color: {{ transit_info.color }}20; border-radius: 8px; margin-top: 10px;">
+                <strong style="color: {{ transit_info.color }}; font-size: 20px;">[{{ transit_info.level }}]</strong>
+                <span style="font-size: 18px; margin-left: 10px;">{{ transit_info.msg }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>📧 내 이메일로 유가 요약 리포트 받기</h2>
+        <p style="color:#555; font-size:14px; margin-bottom:15px;">
+            버튼을 누르시면 현재 로그인된 계정({{ user_email }})으로 리포트를 보내드립니다.
+        </p>
+        <div class="email-box">
+            <button onclick="sendEmail()" style="width: 100%; font-size: 16px; padding: 15px;">리포트 즉시 발송</button>
+        </div>
+        <div id="email-result" style="text-align:center; margin-top:15px;"></div>
+    </div>
+
+    <div class="card">
+        <h2>📊 전국 평균 유가</h2>
+        <table>
+            <tr><th>번호</th><th>유종</th><th>평균 가격</th><th>전일 대비</th><th>기준일</th></tr>
+            {% for oil in avg_list %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ oil.PRODNM }}</td>
+                <td class="price">{{ oil.PRICE }}원</td>
+                <td>{{ oil.DIFF }}</td>
+                <td>{{ oil.TRADE_DT }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    {% if drop_list %}
+    <div class="card">
+        <h2>📉 전일 대비 가격 하락 유종</h2>
+        <table>
+            <tr><th>유종</th><th>현재 가격</th><th>전일 대비</th></tr>
+            {% for oil in drop_list %}
+            <tr>
+                <td>{{ oil.PRODNM }}</td>
+                <td class="price">{{ oil.PRICE }}원</td>
+                <td class="price-drop">▼ {{ oil.DIFF }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <h2>🏆 전국/지역별 최저가 주유소 TOP20</h2>
+        <form method="GET" action="/" class="search-box">
+            <select name="prodcd">
+                {% for code, name in prod_list %}
+                <option value="{{ code }}" {% if selected_prodcd == code %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+            <select name="area">
+                {% for code, name in areas %}
+                <option value="{{ code }}" {% if selected_area == code %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">조회하기</button>
+        </form>
+        <table>
+            <tr><th>순위</th><th>주유소명</th><th>가격</th><th>상표</th><th>주소</th></tr>
+            {% for oil in low_top20_list %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ oil.OS_NM }}</td>
+                <td class="price">{{ oil.PRICE }}원</td>
+                <td>{{ oil.POLL_DIV_CD }}</td>
+                <td class="address">
+                    {% if oil.NEW_ADR %}{{ oil.NEW_ADR }}
+                    {% else %}{{ oil.VAN_ADR }}{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>📍 주변 주유소 찾기</h2>
+
+        <div class="search-box" style="background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+            <input type="text" id="address" placeholder="검색할 주소를 입력하세요 (예: 판교로 227번길)" style="flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; outline: none;">
+            <button onclick="getPosByInput()" style="background-color: #059669; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;">주소로 조회</button>
+        </div>
+
+        <div class="search-box" style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 20px;">
+            <span style="font-size: 14px; color: #4b5563; font-weight: bold;">제품구분</span>
+            <select id="nearby-prodcd" style="padding: 10px; border-radius: 8px; border: 1px solid #ddd; height: 42px;">
+                {% for code, name in prod_list %}
+                    <option value="{{ code }}" {% if selected_prodcd == code %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+    
+            <span style="font-size: 14px; color: #4b5563; font-weight: bold; margin-left: 10px;">반경</span>
+            <div style="display: flex; align-items: center; gap: 5px;">
+                <input type="number" id="radius" value="1000" min="500" max="5000" step="500" style="width: 80px; height: 42px; padding: 0 10px; border: 1px solid #ddd; border-radius: 8px; text-align: center; box-sizing: border-box;"> 
+                <span style="font-size: 14px; color: #666;">m</span>
+            </div>
+
+            <span style="font-size: 14px; color: #4b5563; font-weight: bold; margin-left: 10px;">정렬</span>
+            <select id="nearby-sort" style="padding: 10px; border-radius: 8px; border: 1px solid #ddd; height: 42px;">
+                <option value="1">가격순</option>
+                <option value="2">거리순</option>
+            </select>
+            <button onclick="getNearby()" style="height: 42px; padding: 0 20px; border-radius: 8px; background-color: #2563eb; color: white; border: none; font-weight: bold; cursor: pointer; margin-left: 10px;">조회</button>
+        </div>
+        <div id="nearby-result" style="margin-top: 15px;"></div>
+    </div>
+
+    <div id="map" style="width:100%;height:400px; border-radius: 12px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);"></div>
+    
+    <!-- 카카오맵 library -->
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=792cbfc8178b93ab378f16a5fabfd805&libraries=services"></script>
+
+    {% if news_list %}
+    <div class="card">
+        <h2>📰 최신 경제 뉴스</h2>
+        {% for news in news_list %}
+        <div class="news-item">
+            <a class="news-title" href="{{ news.link }}" target="_blank">{{ news.title }}</a>
+            <p class="news-summary">{{ news.summary[:100] }}...</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+    var map;
+    var markers = []; 
+    var centerMarker = null;
+    var userLat = null;
+    var userLon = null;
+    var imageSrc = "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png";
+
+    window.onload = function() {
+        // 지도 초기화
+        var mapContainer = document.getElementById('map');
+        var mapOption = { 
+            center: new kakao.maps.LatLng(37.5665, 126.9780), // 기본 서울시청 중심
+            level: 4 
+        };
+        map = new kakao.maps.Map(mapContainer, mapOption);
+        // 최초 접속 시 geolocation 위치 가져오기
+        getPos();
+    };
+
+    // 브라우저 Geolocation으로 위치 가져오기
+    function getPos() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (p) => {
+                    userLat = p.coords.latitude;
+                    userLon = p.coords.longitude;
+                    updateLocationAndSearch();
+                },
+                (err) => { 
+                    console.log('위치 권한 거부됨'); 
+                    alert('위치 권한을 허용하시거나 주소를 직접 입력해주세요.');
+                }
+            );
+        }
+    }
+
+    // 주소 입력을 통해 위치 설정
+    function getPosByInput() {
+        var addr = document.getElementById('address').value;
+        if (!addr) { alert("주소를 입력해주세요."); return; }
+
+        var geocoder = new kakao.maps.services.Geocoder();
+        geocoder.addressSearch(addr, function(result, status) {
+            if (status === kakao.maps.services.Status.OK) {
+                userLat = parseFloat(result[0].y);
+                userLon = parseFloat(result[0].x);
+                updateLocationAndSearch();
+            } else {
+                alert("주소를 찾을 수 없습니다.");
+            }
+        });
+    }
+
+    // 지도 중심 이동 후 api 호출
+    function updateLocationAndSearch() {
+        if (!userLat || !userLon) return;
+        var coords = new kakao.maps.LatLng(userLat, userLon);
+
+        // 중심 마커 초기화
+        if (centerMarker) {
+            centerMarker.setMap(null);
+        }
+        
+        centerMarker = new kakao.maps.Marker({
+            position: coords,
+            map: map,
+            title: '현위치',
+            zIndex: 10
+        });
+        map.setCenter(coords);
+        getNearby();
+    }
+
+    // 주변 주유소 정보 가져오기
+    function getNearby() {
+        fetch('/nearby', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                lat: userLat,
+                lon: userLon,
+                radius: document.getElementById('radius').value,
+                prodcd: document.getElementById('nearby-prodcd').value,
+                sort: document.getElementById('nearby-sort').value
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const nearbyResultDiv = document.getElementById('nearby-result');
+            removeMarkers(); // 기존 마커 제거
+
+            if (!data.length) {
+                nearbyResultDiv.innerHTML = '<p style="text-align:center; color:gray; padding:20px;">주변 주유소가 없습니다.</p>';
+                return;
+            }
+
+            // 결과 테이블 생성
+            let html = `<table><tr><th>순위</th><th>주유소명</th><th>가격</th><th>거리</th><th>브랜드</th></tr>`;
+
+            data.forEach((oil, i) => {
+                html += `<tr>
+                    <td>${i + 1}</td>
+                    <td>${oil.OS_NM}</td>
+                    <td class="price">${Number(oil.PRICE).toLocaleString()}원</td>
+                    <td>${oil.DISTANCE}m</td>
+                    <td>${oil.POLL_DIV_CD}</td>
+                </tr>`;
+
+                // 좌표계 변환 후 마커 위치 보정용 오프셋
+                const latOffset = -0.00019; 
+                const lonOffset = 0.0001; 
+                const finalLat = parseFloat(oil.lat) + latOffset;
+                const finalLon = parseFloat(oil.lon) + lonOffset;
+                
+                // 마커 찍기
+                var markerPosition = new kakao.maps.LatLng(finalLat, finalLon);
+                var marker = new kakao.maps.Marker({
+                    map: map,
+                    position: markerPosition,
+                    title: oil.OS_NM,
+                    image: new kakao.maps.MarkerImage(imageSrc, new kakao.maps.Size(24, 35))
+                });
+                markers.push(marker);
+            });
+
+            html += '</table>';
+            nearbyResultDiv.innerHTML = html;
+        });
+    }
+
+    // 마커 삭제
+    function removeMarkers() {
+        for (var i = 0; i < markers.length; i++) { markers[i].setMap(null); }
+        markers = [];
+    }
+
+    function sendEmail() {
+        const resultDiv = document.getElementById("email-result");
+        resultDiv.style.color = "#2563eb";
+        resultDiv.innerText = "발송 중...";
+
+        fetch("/send-email", { method: "POST" })
+        .then(res => res.json())
+        .then(data => {
+            resultDiv.style.color = data.success ? "#16a34a" : "#dc2626";
+            resultDiv.innerText = data.message;
+        })
+        .catch(() => {
+            resultDiv.style.color = "#dc2626";
+            resultDiv.innerText = "발송 중 오류가 발생했습니다.";
+        });
+    }
+</script>
+</body>
+</html>
